@@ -12,13 +12,11 @@
 </head>
 
 <body>
-<p>Shithead</p>
-<p>Start Session</p><button>GO</button>
-<p>End Session</p><button>GO</button>
-<p>Start Game</p><button>GO</button>
-<p>Play Hand</p><button>GO</button>
-<p>Result</p>
-<textarea></textarea>
+<h1>Shithead</h1>
+<p>Send Command</p>
+<input type="text" id="command" onkeydown="commandKeyDown(this)" autofocus/><button onclick="send()">GO</button>
+<p>Response</p>
+<textarea id="response"></textarea>
 </body>
 <script src="js/scripts.js"></script>
 </html>
