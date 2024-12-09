@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -36,25 +34,13 @@ func (wsh webSocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		log.Printf("Receive message %s", string(message))
-		if strings.Trim(string(message), "\n") != "start" {
-			err = c.WriteMessage(websocket.TextMessage, []byte("You did not say the magic word!"))
+		command := strings.Trim(string(message), "\n")
+		if command == "start" {
+			err = c.WriteMessage(websocket.TextMessage, []byte("Game starting..."))
 			if err != nil {
 				log.Printf("Error %s when sending message to client", err)
-				return
 			}
-			continue
-		}
-		log.Println("start responding to client...")
-		i := 1
-		for {
-			response := fmt.Sprintf("Notification %d", i)
-			err = c.WriteMessage(websocket.TextMessage, []byte(response))
-			if err != nil {
-				log.Printf("Error %s when sending message to client", err)
-				return
-			}
-			i = i + 1
-			time.Sleep(2 * time.Second)
+			return
 		}
 	}
 
