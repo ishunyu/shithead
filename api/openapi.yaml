@@ -1,0 +1,110 @@
+openapi: 3.0.3
+info:
+  title: Shithead
+  description: |-
+    This is the API doc for Shithead, an online version of the real card game of the same name. This doc
+    
+    Some useful links:
+    - [Github](https://github.com/ishunyu/shithead)
+  contact:
+    email: shunsmamilbox@gmail.com
+  license:
+    name: MIT
+    url: https://github.com/ishunyu/shithead/blob/main/LICENSE
+  version: 0.1.0
+tags:
+  - name: game
+    description: Everything about your Pets
+paths:
+  /game/start:
+    post:
+      summary: Start a game
+      description: Start a game over WebSocket
+      requestBody:
+        description: Start a game request body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartGameRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StartGameResponse'
+        
+  /game/play:
+    put:
+      summary: Play a hand
+      description: Play a hand over WebSocket
+      requestBody:
+        description: Play a hand request body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Hand'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameState'
+      
+  
+components:
+  schemas:
+    StartGameRequest:
+      type: object
+      properties:
+        gameSession:
+          type: string
+      xml:
+        name: start_game_request
+    StartGameResponse:
+      type: object
+      properties:
+        gameSession:
+          type: string
+      xml:
+        name: start_game_response
+    Card:
+      type: object
+      properties:
+        number:
+          type: integer
+          format: int16
+        suit:
+          type: integer
+          format: int16
+      xml:
+        name: card
+    Hand:
+      type: object
+      properties:
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/Card'
+      xml:
+        name: hand
+    GameState:
+      type: object
+      properties:
+        deck:
+          type: array
+          items: 
+            $ref: '#/components/schemas/Card'
+        playerHands:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hand'
+      xml:
+        name: game_state
+  # requestBodies:
+    
+  # securitySchemes:
+    
