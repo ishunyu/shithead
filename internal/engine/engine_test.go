@@ -47,3 +47,27 @@ func standardDeck() []Card {
 
 	return cards
 }
+
+func TestGame(t *testing.T) {
+	numOfPlayers := 4
+	game := NewGame(numOfPlayers)
+	if game == nil {
+		t.Fatal("game is nil")
+	}
+
+	numOfPlayersActual := len(game.Hands)
+	if numOfPlayersActual != numOfPlayers {
+		t.Fatalf("Number of players mismatch. Expected: %d, actual: %d.", numOfPlayers, numOfPlayersActual)
+	}
+
+	ids := make([]uint8, 0, numOfPlayers)
+	for _, hand := range game.Hands {
+		id := hand.Id
+		if slices.Contains(ids, id) {
+			t.Fatalf("Id %d already exists.", id)
+		}
+		ids = append(ids, id)
+
+	}
+
+}

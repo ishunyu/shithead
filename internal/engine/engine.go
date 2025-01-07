@@ -26,12 +26,13 @@ type Deck struct {
 type Hand struct {
 	Id       uint8
 	InHand   []Card
+	FaceUp   []Card
 	FaceDown []Card
 }
 
 type Game struct {
-	deck  *Deck
-	hands []Hand
+	Deck  *Deck
+	Hands []Hand
 }
 
 func NewDeck() *Deck {
@@ -86,4 +87,8 @@ func (suit Suit) String() string {
 
 func (card Card) String() string {
 	return fmt.Sprintf("(%s, %d)", card.Suit, card.Rank)
+}
+
+func NewGame(numOfPlayers int) *Game {
+	return nil
 }
