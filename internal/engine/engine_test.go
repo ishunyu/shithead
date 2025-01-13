@@ -36,7 +36,7 @@ func TestDeck(t *testing.T) {
 
 func standardDeck() []Card {
 	suits := []Suit{Club, Diamond, Heart, Spade}
-	ranks := []uint8{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}
+	ranks := []Rank{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}
 
 	cards := make([]Card, 0, 52)
 	for _, suit := range suits {
@@ -44,6 +44,9 @@ func standardDeck() []Card {
 			cards = append(cards, Card{suit, rank})
 		}
 	}
+
+	cards = append(cards, Card{JokerSmall, Joker})
+	cards = append(cards, Card{JokerLarge, Joker})
 
 	return cards
 }

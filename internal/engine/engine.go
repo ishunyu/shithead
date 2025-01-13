@@ -2,21 +2,43 @@ package engine
 
 import (
 	"fmt"
+	"math"
 	"math/rand/v2"
 )
 
 type Suit uint8
 
 const (
-	Club    Suit = 0
-	Diamond Suit = 1
-	Heart   Suit = 2
-	Spade   Suit = 3
+	Club       Suit = 0
+	Diamond    Suit = 1
+	Heart      Suit = 2
+	Spade      Suit = 3
+	JokerSmall Suit = math.MaxUint8 - 1
+	JokerLarge Suit = math.MaxUint8
+)
+
+type Rank uint8
+
+const (
+	Ace   Rank = 1
+	Two   Rank = 2
+	Three Rank = 3
+	Four  Rank = 4
+	Five  Rank = 5
+	Six   Rank = 6
+	Seven Rank = 7
+	Eight Rank = 8
+	Nine  Rank = 9
+	Ten   Rank = 10
+	Jack  Rank = 11
+	Queen Rank = 12
+	King  Rank = 13
+	Joker Rank = math.MaxUint8
 )
 
 type Card struct {
 	Suit Suit
-	Rank uint8
+	Rank Rank
 }
 
 type Deck struct {
@@ -36,9 +58,10 @@ type Game struct {
 }
 
 func NewDeck() *Deck {
-	suits := []Suit{Club, Diamond, Heart, Spade}
-	ranks := []uint8{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}
-	standardDeck := make([]Card, 0, 52)
+	numOfCards := 54
+	suits := []Suit{0, 1, 2, 3}
+	ranks := []Rank{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}
+	standardDeck := make([]Card, 0, numOfCards)
 
 	for _, suit := range suits {
 		for _, rank := range ranks {
@@ -46,8 +69,11 @@ func NewDeck() *Deck {
 		}
 	}
 
-	deck := make([]Card, 0, 52)
-	shuffle := rand.Perm(52)
+	standardDeck = append(standardDeck, Card{JokerSmall, Joker})
+	standardDeck = append(standardDeck, Card{JokerLarge, Joker})
+
+	deck := make([]Card, 0, numOfCards)
+	shuffle := rand.Perm(numOfCards)
 
 	for _, i := range shuffle {
 		deck = append(deck, standardDeck[i])
@@ -75,6 +101,10 @@ func (suit Suit) String() string {
 		return "Heart"
 	case Spade:
 		return "Spade"
+	case JokerSmall:
+		return "JokerSmall"
+	case JokerLarge:
+		return "JokerLarge"
 	default:
 		return "Unknown"
 	}
