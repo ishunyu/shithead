@@ -90,5 +90,18 @@ func (card Card) String() string {
 }
 
 func NewGame(numOfPlayers int) *Game {
-	return nil
+	deck := NewDeck()
+	hands := make([]Hand, 0, numOfPlayers)
+	for i := 0; i < numOfPlayers; i++ {
+		hands = append(hands, Hand{
+			Id:       uint8(i),
+			InHand:   make([]Card, 0),
+			FaceUp:   make([]Card, 0),
+			FaceDown: make([]Card, 0),
+		})
+	}
+	return &Game{
+		Deck:  deck,
+		Hands: hands,
+	}
 }
