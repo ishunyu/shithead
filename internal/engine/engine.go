@@ -120,6 +120,18 @@ func (card Card) String() string {
 	return fmt.Sprintf("(%s, %d)", card.Suit, card.Rank)
 }
 
+func (hand *Hand) dealFaceDown(card Card) {
+	hand.FaceDown = append(hand.FaceDown, card)
+}
+
+func (hand *Hand) dealFaceUp(card Card) {
+	hand.FaceUp = append(hand.FaceUp, card)
+}
+
+func (hand *Hand) dealInHand(card Card) {
+	hand.InHand = append(hand.InHand, card)
+}
+
 func NewGame(numOfPlayers int) *Game {
 	deck := NewDeck()
 	hands := make([]Hand, 0, numOfPlayers)
@@ -132,31 +144,22 @@ func NewGame(numOfPlayers int) *Game {
 		})
 	}
 
-	for i := 0; i < 3; i++ {
-		for j := range hands {
-			hand := &hands[j]
-			hand.FaceDown = append(hand.FaceDown, deck.DrawCard())
-		}
-	}
-
-	for i := 0; i < 3; i++ {
-		for j := range hands {
-			hand := &hands[j]
-			hand.FaceUp = append(hand.FaceUp, deck.DrawCard())
-		}
-	}
-
-	for i := 0; i < 3; i++ {
-		for j := range hands {
-			hand := &hands[j]
-			hand.InHand = append(hand.InHand, deck.DrawCard())
-		}
-	}
-
-	fmt.Println(hands[0].FaceDown)
+	// Deal hands
+	dealCard(deck, hands, 3, (*Hand).dealFaceDown)
+	dealCard(deck, hands, 3, (*Hand).dealFaceUp)
+	dealCard(deck, hands, 3, (*Hand).dealInHand)
 
 	return &Game{
 		Deck:  deck,
 		Hands: hands,
+	}
+}
+
+func dealCard(deck *Deck, hands []Hand, numOfRounds int, acceptCard func(hand *Hand, card Card)) {
+	for r := 0; r < numOfRounds; r++ {
+		for i := range hands {
+			hand := &hands[i]
+			acceptCard(hand, deck.DrawCard())
+		}
 	}
 }
