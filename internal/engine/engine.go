@@ -66,23 +66,18 @@ func (deck *Deck) String() string {
 }
 
 func (suit Suit) String() string {
-	if suit == Club {
+	switch suit {
+	case Club:
 		return "Club"
-	}
-
-	if suit == Diamond {
+	case Diamond:
 		return "Diamond"
-	}
-
-	if suit == Heart {
+	case Heart:
 		return "Heart"
-	}
-
-	if suit == Spade {
+	case Spade:
 		return "Spade"
+	default:
+		return "Unknown"
 	}
-
-	return "Unknown"
 }
 
 func (card Card) String() string {
