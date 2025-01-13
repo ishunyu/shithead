@@ -82,6 +82,12 @@ func NewDeck() *Deck {
 	return &Deck{deck}
 }
 
+func (deck *Deck) DrawCard() Card {
+	card, remaining := deck.Cards[0], deck.Cards[1:]
+	deck.Cards = remaining
+	return card
+}
+
 func (deck *Deck) String() string {
 	s := ""
 	for _, card := range deck.Cards {
@@ -120,11 +126,35 @@ func NewGame(numOfPlayers int) *Game {
 	for i := 0; i < numOfPlayers; i++ {
 		hands = append(hands, Hand{
 			Id:       uint8(i),
-			InHand:   make([]Card, 0),
-			FaceUp:   make([]Card, 0),
-			FaceDown: make([]Card, 0),
+			InHand:   make([]Card, 0, 3),
+			FaceUp:   make([]Card, 0, 3),
+			FaceDown: make([]Card, 0, 3),
 		})
 	}
+
+	for i := 0; i < 3; i++ {
+		for j := range hands {
+			hand := &hands[j]
+			hand.FaceDown = append(hand.FaceDown, deck.DrawCard())
+		}
+	}
+
+	for i := 0; i < 3; i++ {
+		for j := range hands {
+			hand := &hands[j]
+			hand.FaceUp = append(hand.FaceUp, deck.DrawCard())
+		}
+	}
+
+	for i := 0; i < 3; i++ {
+		for j := range hands {
+			hand := &hands[j]
+			hand.InHand = append(hand.InHand, deck.DrawCard())
+		}
+	}
+
+	fmt.Println(hands[0].FaceDown)
+
 	return &Game{
 		Deck:  deck,
 		Hands: hands,

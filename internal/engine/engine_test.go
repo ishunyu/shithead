@@ -13,6 +13,10 @@ func TestDeck(t *testing.T) {
 
 	t.Logf("\nDeck: \n%s", deck)
 
+	testAgainstStandardDeck(t, deck)
+}
+
+func testAgainstStandardDeck(t *testing.T, deck *Deck) {
 	standardDeck := standardDeck()
 	numOfCardsInStandardDeck := len(standardDeck)
 	numOfCards := len(deck.Cards)
@@ -38,7 +42,7 @@ func standardDeck() []Card {
 	suits := []Suit{Club, Diamond, Heart, Spade}
 	ranks := []Rank{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}
 
-	cards := make([]Card, 0, 52)
+	cards := make([]Card, 0, 54)
 	for _, suit := range suits {
 		for _, rank := range ranks {
 			cards = append(cards, Card{suit, rank})
@@ -70,7 +74,15 @@ func TestGame(t *testing.T) {
 			t.Fatalf("Id %d already exists.", id)
 		}
 		ids = append(ids, id)
-
 	}
 
+	collectedDeck := make([]Card, 0, 54)
+	for _, hand := range game.Hands {
+		collectedDeck = append(collectedDeck, hand.InHand...)
+		collectedDeck = append(collectedDeck, hand.FaceUp...)
+		collectedDeck = append(collectedDeck, hand.FaceDown...)
+	}
+	collectedDeck = append(collectedDeck, game.Deck.Cards...)
+
+	testAgainstStandardDeck(t, &Deck{collectedDeck})
 }
