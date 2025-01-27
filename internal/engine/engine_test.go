@@ -17,7 +17,7 @@ func TestDeck(t *testing.T) {
 }
 
 func testAgainstStandardDeck(t *testing.T, deck *Deck) {
-	standardDeck := standardDeck()
+	standardDeck := newStandardDeck()
 	numOfCardsInStandardDeck := len(standardDeck)
 	numOfCards := len(deck.Cards)
 	if numOfCards != numOfCardsInStandardDeck {
@@ -36,23 +36,6 @@ func testAgainstStandardDeck(t *testing.T, deck *Deck) {
 	if len(standardDeck) != 0 {
 		t.Fatalf("Deck does not conform to a standard deck.")
 	}
-}
-
-func standardDeck() []Card {
-	suits := []Suit{Club, Diamond, Heart, Spade}
-	ranks := []Rank{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}
-
-	cards := make([]Card, 0, 54)
-	for _, suit := range suits {
-		for _, rank := range ranks {
-			cards = append(cards, Card{suit, rank})
-		}
-	}
-
-	cards = append(cards, Card{JokerSmall, Joker})
-	cards = append(cards, Card{JokerLarge, Joker})
-
-	return cards
 }
 
 func TestGame(t *testing.T) {
@@ -85,4 +68,24 @@ func TestGame(t *testing.T) {
 	collectedDeck = append(collectedDeck, game.Deck.Cards...)
 
 	testAgainstStandardDeck(t, &Deck{collectedDeck})
+
+	game.init()
+	t.Log(game)
+
+	collectedInHand := make([]Card, 0, numOfPlayers*3)
+	for _, hand := range game.Hands {
+		collectedInHand = append(collectedInHand, hand.InHand...)
+	}
+	slices.SortFunc(collectedInHand, BasicCompare)
+	t.Logf("All in hand cards: %s", collectedInHand)
+
+	lowestCard := collectedInHand[0]
+	t.Logf("Lowest card: %s", collectedInHand[0])
+
+	startingHand := game.Hands[game.currentPlayerId]
+	if !slices.Contains(startingHand.InHand, lowestCard) {
+		t.Fatalf("Player does not have the lowest card. lowestCard: %s, startingHand: %v", lowestCard, startingHand)
+	}
 }
+
+//TODO: Add tests for comparison code
