@@ -1,8 +1,9 @@
 package engine
 
-type CardCompareFunc func(a, b Card) int
+type CardCompare func(a, b Card) int
 
-func BasicCompare(a, b Card) int {
+// NumericCompare is a CardCompare that compares cards by their numeric value.
+func NumericCompare(a, b Card) int {
 	if a == b {
 		return 0
 	}
@@ -19,34 +20,41 @@ type CardComparator interface {
 	Compare(a, b Card) int
 }
 
-type CardComparatorImplState int
+type comparatorState int
 
 const (
-	_terminate = 0
-	_continue  = 1
+	_terminate comparatorState = 0
+	_continue  comparatorState = 1
 )
 
 type CardComparatorImpl struct {
-	f     func(a, b Card) (int, CardComparatorImplState)
-	inner *CardComparator
+	compareFunc func(a, b Card) (int, comparatorState)
+	next        *CardComparator
 }
 
 func (comparator CardComparatorImpl) Compare(a, b Card) int {
-	t, c := comparator.f(a, b)
+	t, c := comparator.compareFunc(a, b)
 	if c == _terminate {
 		return t
 	}
-	return (*comparator.inner).Compare(a, b)
+	return (*comparator.next).Compare(a, b)
 }
 
 var BasicComparator CardComparator = CardComparatorImpl{
-	f: func(a, b Card) (int, CardComparatorImplState) {
-		return BasicCompare(a, b), _terminate
+	compareFunc: func(a, b Card) (int, comparatorState) {
+		return NumericCompare(a, b), _terminate
 	},
-	inner: nil,
+	next: nil,
 }
 
-func minSlice(cards []Card, comparatorFunc CardCompareFunc) Card {
+func min(a, b Card, comparatorFunc CardCompare) Card {
+	if comparatorFunc(a, b) <= 0 {
+		return a
+	}
+	return b
+}
+
+func minSlice(cards []Card, comparatorFunc CardCompare) Card {
 	numOfCards := len(cards)
 	if numOfCards == 0 {
 		panic("cards is empty")
@@ -57,11 +65,4 @@ func minSlice(cards []Card, comparatorFunc CardCompareFunc) Card {
 		minCard = min(minCard, cards[i], comparatorFunc)
 	}
 	return minCard
-}
-
-func min(a, b Card, comparatorFunc CardCompareFunc) Card {
-	if comparatorFunc(a, b) <= 0 {
-		return a
-	}
-	return b
 }

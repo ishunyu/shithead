@@ -43,7 +43,7 @@ func TestGame(t *testing.T) {
 	for _, hand := range game.Hands {
 		collectedInHand = append(collectedInHand, hand.InHand...)
 	}
-	slices.SortFunc(collectedInHand, BasicCompare)
+	slices.SortFunc(collectedInHand, NumericCompare)
 	t.Logf("All in hand cards: %s", collectedInHand)
 
 	lowestCard := collectedInHand[0]
@@ -54,5 +54,3 @@ func TestGame(t *testing.T) {
 		t.Fatalf("Player does not have the lowest card. lowestCard: %s, startingHand: %v", lowestCard, startingHand)
 	}
 }
-
-//TODO: Add tests for comparison code

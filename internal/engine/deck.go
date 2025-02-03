@@ -60,6 +60,10 @@ type Card struct {
 	Rank Rank
 }
 
+func (card Card) String() string {
+	return fmt.Sprintf("(%s, %d)", card.Suit, card.Rank)
+}
+
 var StandardDeck []Card = newStandardDeck()
 
 func newStandardDeck() []Card {
@@ -81,10 +85,6 @@ func newStandardDeck() []Card {
 
 func validate(card Card) bool {
 	return slices.Contains[[]Card](StandardDeck, card)
-}
-
-func (card Card) String() string {
-	return fmt.Sprintf("(%s, %d)", card.Suit, card.Rank)
 }
 
 type Deck struct {

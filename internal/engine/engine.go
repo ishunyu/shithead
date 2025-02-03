@@ -71,11 +71,11 @@ func dealCard(deck *Deck, hands []Hand, numOfRounds int, acceptCard func(hand *H
 
 func (game *Game) init() {
 	// Find player with lowest card
-	minCard := minSlice(game.Hands[0].InHand, BasicCompare)
+	minCard := minSlice(game.Hands[0].InHand, NumericCompare)
 	startingPlayerId := 0
 	for i := 1; i < len(game.Hands); i++ {
 		hand := game.Hands[i]
-		minCardInHand := minSlice(hand.InHand, BasicCompare)
+		minCardInHand := minSlice(hand.InHand, NumericCompare)
 		if game.compare(minCardInHand, minCard) < 0 {
 			startingPlayerId = i
 			minCard = minCardInHand
