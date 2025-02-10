@@ -28,7 +28,7 @@ func NewGame(numOfPlayers int) *Game {
 	hands := make([]Hand, 0, numOfPlayers)
 	for i := 0; i < numOfPlayers; i++ {
 		hands = append(hands, Hand{
-			Id:       uint8(i),
+			Id:       i,
 			InHand:   make([]Card, 0, 3),
 			FaceUp:   make([]Card, 0, 3),
 			FaceDown: make([]Card, 0, 3),
@@ -48,7 +48,7 @@ func NewGame(numOfPlayers int) *Game {
 	}
 }
 
-func (game *Game) PlayHand(hand *Hand) {
+func (game *Game) PlayHand(play Play) Result {
 
 }
 
@@ -99,4 +99,16 @@ func newGameComparator(compareFunc cardComparatorFunc) CardComparator {
 		compareFunc: compareFunc,
 		next:        &BasicComparator,
 	}
+}
+
+func (game *Game) leftOf(playerId int) int {
+	return (playerId - 1) % len(game.Hands)
+}
+
+func (game *Game) rightOf(playerId int) int {
+	return (playerId + 1) % len(game.Hands)
+}
+
+func (game *Game) nextTo(playerAId int, playerBId int) bool {
+	return game.leftOf(playerAId) == playerBId || game.rightOf(playerAId) == playerBId
 }

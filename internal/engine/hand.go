@@ -1,7 +1,7 @@
 package engine
 
 type Hand struct {
-	Id       uint8
+	Id       int
 	InHand   []Card
 	FaceUp   []Card
 	FaceDown []Card
