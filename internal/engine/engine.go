@@ -5,7 +5,9 @@ import (
 )
 
 type Game struct {
-	Deck            *Deck
+	DrawPile        *Deck
+	DiscardPile     *Deck
+	InPlayPile      *Deck
 	Hands           []Hand
 	currentPlayerId int
 	comparator      CardComparator
@@ -39,17 +41,21 @@ func NewGame(numOfPlayers int) *Game {
 	dealCard(deck, hands, 3, (*Hand).dealInHand)
 
 	return &Game{
-		Deck:            deck,
+		DrawPile:        deck,
 		Hands:           hands,
 		currentPlayerId: InitialPlayerId,
 		comparator:      BasicComparator,
 	}
 }
 
+func (game *Game) PlayHand(hand *Hand) {
+
+}
+
 func (game *Game) String() string {
 	s := ""
 	s += "Game:\n"
-	s += "Deck: " + game.Deck.String() + "\n"
+	s += "Deck: " + game.DrawPile.String() + "\n"
 	s += "Hands: [\n"
 	for _, hand := range game.Hands {
 		s += fmt.Sprintf("  %+v\n", hand)
@@ -86,4 +92,11 @@ func (game *Game) init() {
 
 func (game *Game) compare(a Card, b Card) int {
 	return game.comparator.Compare(a, b)
+}
+
+func newGameComparator(compareFunc cardComparatorFunc) CardComparator {
+	return CardComparatorImpl{
+		compareFunc: compareFunc,
+		next:        &BasicComparator,
+	}
 }

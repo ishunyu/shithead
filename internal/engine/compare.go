@@ -27,8 +27,10 @@ const (
 	_continue  comparatorState = 1
 )
 
+type cardComparatorFunc func(a, b Card) (int, comparatorState)
+
 type CardComparatorImpl struct {
-	compareFunc func(a, b Card) (int, comparatorState)
+	compareFunc cardComparatorFunc
 	next        *CardComparator
 }
 

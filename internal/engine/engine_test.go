@@ -32,7 +32,7 @@ func TestGame(t *testing.T) {
 		collectedDeck = append(collectedDeck, hand.FaceUp...)
 		collectedDeck = append(collectedDeck, hand.FaceDown...)
 	}
-	collectedDeck = append(collectedDeck, game.Deck.Cards...)
+	collectedDeck = append(collectedDeck, game.DrawPile.Cards...)
 
 	testAgainstStandardDeck(t, &Deck{collectedDeck})
 

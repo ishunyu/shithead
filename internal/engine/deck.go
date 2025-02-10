@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"math"
 	"math/rand/v2"
 	"slices"
 )
@@ -52,7 +53,7 @@ const (
 	Jack  Rank = 11
 	Queen Rank = 12
 	King  Rank = 13
-	Joker Rank = 14
+	Joker Rank = math.MaxUint8
 )
 
 type Card struct {
