@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"slices"
 )
 
 type Game struct {
@@ -9,15 +10,18 @@ type Game struct {
 	DiscardPile     *Deck
 	InPlayPile      *Deck
 	Hands           []Hand
-	currentPlayerId int
 	comparator      CardComparator
+	round           int
+	currentPlayerId int
+	direction       int
 }
 
-const InitialPlayerId int = -1
+const NotStartedPlayerId int = -1
 const EndedPlayerId int = -2
+const ErrorPlayerId int = -3
 
 func (game *Game) CurrentHand() Hand {
-	if game.currentPlayerId == InitialPlayerId {
+	if game.currentPlayerId == NotStartedPlayerId {
 		game.init()
 	}
 	return game.Hands[game.currentPlayerId]
@@ -43,13 +47,61 @@ func NewGame(numOfPlayers int) *Game {
 	return &Game{
 		DrawPile:        deck,
 		Hands:           hands,
-		currentPlayerId: InitialPlayerId,
+		round:           0,
+		currentPlayerId: NotStartedPlayerId,
+		direction:       1,
 		comparator:      BasicComparator,
 	}
 }
 
 func (game *Game) PlayHand(play Play) Result {
+	// Check the correct player played the turn
+	if play.Hand.Id != game.currentPlayerId {
+		return Result{
+			Round:        game.round,
+			Success:      false,
+			Status:       WrongPlayer,
+			NextPlayerId: game.currentPlayerId,
+		}
+	}
 
+	// Check if the card is in the player's hand
+	if len(play.Hand.InHand) != 0 && !slices.Contains(play.Hand.InHand, play.Card) {
+		return Result{
+			Round:        game.round,
+			Success:      false,
+			Status:       CardNotInHand,
+			NextPlayerId: game.currentPlayerId,
+		}
+	}
+
+	if len(play.Hand.FaceUp) != 0 && !slices.Contains(play.Hand.FaceUp, play.Card) {
+		return Result{
+			Round:        game.round,
+			Success:      false,
+			Status:       CardNotFaceUp,
+			NextPlayerId: game.currentPlayerId,
+		}
+	}
+
+	if len(play.Hand.FaceDown) != 0 && !slices.Contains(play.Hand.FaceDown, play.Card) {
+		return Result{
+			Round:        game.round,
+			Success:      false,
+			Status:       CardNotFaceDown,
+			NextPlayerId: game.currentPlayerId,
+		}
+	}
+
+	play.Hand.RemoveCard(play.Card)
+	game.InPlayPile.AddCard(play.Card)
+	game.round++
+
+	return Result{
+		Round:        1,
+		Success:      true,
+		NextPlayerId: game.leftOf(game.currentPlayerId),
+	}
 }
 
 func (game *Game) String() string {

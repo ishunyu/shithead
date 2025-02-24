@@ -5,8 +5,18 @@ type Play struct {
 	Card Card
 }
 
+type Status int
+
+const (
+	Error         Status = 0
+	Success       Status = 1
+	WrongPlayer   Status = 2
+	CardNotInHand Status = 3
+)
+
 type Result struct {
-	RoundNumber  int
+	Round        int
 	Success      bool
+	Status       Status
 	NextPlayerId int
 }

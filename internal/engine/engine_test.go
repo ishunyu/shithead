@@ -75,16 +75,16 @@ func TestPlayHandSuccess(t *testing.T) {
 		t.Fatal("Expected play to succeed, but it failed.")
 	}
 
-	if result.RoundNumber != 1 {
-		t.Fatal("Round number mismatch. Expected: 1, actual: %d.", result.RoundNumber)
+	if result.Round != 1 {
+		t.Fatalf("Round number mismatch. Expected: 1, actual: %d.", result.Round)
 	}
 
 	if !game.nextTo(result.NextPlayerId, startingHand.Id) {
-		t.Fatal("Next player mismatch. startingPlayerId: %d, nextPlayerId: %d.", startingHand.Id, result.NextPlayerId)
+		t.Fatalf("Next player mismatch. startingPlayerId: %d, nextPlayerId: %d.", startingHand.Id, result.NextPlayerId)
 	}
 
 	if !slices.Contains(startingHand.InHand, play.Card) {
-		t.Fatal("Card not found in starting hand. Card: %s, startingHand: %v", play.Card, startingHand)
+		t.Fatalf("Card not found in starting hand. Card: %s, startingHand: %v", play.Card, startingHand)
 	}
 }
 
