@@ -2,7 +2,6 @@ package engine
 
 import (
 	"fmt"
-	"slices"
 )
 
 type Game struct {
@@ -54,53 +53,55 @@ func NewGame(numOfPlayers int) *Game {
 	}
 }
 
-func (game *Game) PlayHand(play Play) Result {
+func (game *Game) PlayHand(play Play) PlayResult {
 	// Check the correct player played the turn
 	if play.Hand.Id != game.currentPlayerId {
-		return Result{
+		return PlayResult{
 			Round:        game.round,
 			Success:      false,
-			Status:       WrongPlayer,
+			Status:       Play_WrongPlayer,
 			NextPlayerId: game.currentPlayerId,
 		}
 	}
 
 	// Check if the card is in the player's hand
-	if len(play.Hand.InHand) != 0 && !slices.Contains(play.Hand.InHand, play.Card) {
-		return Result{
+	status := play.Hand.removeCard(play.Card)
+	if status != Success {
+		return PlayResult{
 			Round:        game.round,
 			Success:      false,
-			Status:       CardNotInHand,
+			Status:       status,
 			NextPlayerId: game.currentPlayerId,
 		}
 	}
 
-	if len(play.Hand.FaceUp) != 0 && !slices.Contains(play.Hand.FaceUp, play.Card) {
-		return Result{
-			Round:        game.round,
-			Success:      false,
-			Status:       CardNotFaceUp,
-			NextPlayerId: game.currentPlayerId,
+	// Check if the card is higher than the top of the in play pile
+	if len(game.InPlayPile.Cards) > 0 {
+		topCard := game.InPlayPile.Cards[len(game.InPlayPile.Cards)-1]
+		if game.compare(play.Card, topCard) < 0 {
+			return PlayResult{
+				Round:        game.round,
+				Success:      false,
+				Status:       Play_CardTooLow,
+				NextPlayerId: game.currentPlayerId,
+			}
 		}
 	}
 
-	if len(play.Hand.FaceDown) != 0 && !slices.Contains(play.Hand.FaceDown, play.Card) {
-		return Result{
-			Round:        game.round,
-			Success:      false,
-			Status:       CardNotFaceDown,
-			NextPlayerId: game.currentPlayerId,
-		}
-	}
-
-	play.Hand.RemoveCard(play.Card)
 	game.InPlayPile.AddCard(play.Card)
-	game.round++
 
-	return Result{
-		Round:        1,
+	return game.concludePlay(play)
+}
+
+func (game *Game) concludePlay(play Play) PlayResult {
+	game.round++
+	game.currentPlayerId = game.nextPlayerId()
+
+	return PlayResult{
+		Round:        game.round,
 		Success:      true,
-		NextPlayerId: game.leftOf(game.currentPlayerId),
+		Status:       Success,
+		NextPlayerId: game.currentPlayerId,
 	}
 }
 
@@ -159,6 +160,10 @@ func (game *Game) leftOf(playerId int) int {
 
 func (game *Game) rightOf(playerId int) int {
 	return (playerId + 1) % len(game.Hands)
+}
+
+func (game *Game) nextPlayerId() int {
+	return (game.currentPlayerId + game.direction) % len(game.Hands)
 }
 
 func (game *Game) nextTo(playerAId int, playerBId int) bool {

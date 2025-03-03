@@ -123,6 +123,10 @@ func (deck *Deck) DrawCard() Card {
 	return card
 }
 
+func (deck *Deck) AddCard(card Card) {
+	deck.Cards = append(deck.Cards, card)
+}
+
 func (deck *Deck) String() string {
 	s := ""
 	for i, card := range deck.Cards {
