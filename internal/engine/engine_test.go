@@ -41,7 +41,7 @@ func TestInitGame(t *testing.T) {
 	numOfPlayers := 4
 	game := NewGame(numOfPlayers)
 
-	game.init()
+	game.Init()
 	t.Log(game)
 
 	collectedInHand := make([]Card, 0, numOfPlayers*3)
@@ -63,6 +63,7 @@ func TestInitGame(t *testing.T) {
 func TestPlayHandSuccess(t *testing.T) {
 	numOfPlayers := 4
 	game := NewGame(numOfPlayers)
+	game.Init()
 	startingHand := &game.Hands[game.currentPlayerId]
 
 	play := Play{
@@ -83,8 +84,12 @@ func TestPlayHandSuccess(t *testing.T) {
 		t.Fatalf("Next player mismatch. startingPlayerId: %d, nextPlayerId: %d.", startingHand.Id, result.NextPlayerId)
 	}
 
-	if !slices.Contains(startingHand.InHand, play.Card) {
-		t.Fatalf("Card not found in starting hand. Card: %s, startingHand: %v", play.Card, startingHand)
+	if slices.Contains(startingHand.InHand, play.Card) {
+		t.Fatalf("Card should not be found in starting hand. Card: %s, startingHand: %v", play.Card, startingHand.InHand)
+	}
+
+	if len(startingHand.InHand) != 3 {
+		t.Fatalf("Starting hand should still have 3 cards. Actual: %d.", startingHand.InHand)
 	}
 }
 

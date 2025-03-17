@@ -6,8 +6,8 @@ import (
 
 type Game struct {
 	DrawPile        *Deck
-	DiscardPile     *Deck
 	InPlayPile      *Deck
+	DiscardPile     *Deck
 	Hands           []Hand
 	comparator      CardComparator
 	round           int
@@ -21,7 +21,7 @@ const ErrorPlayerId int = -3
 
 func (game *Game) CurrentHand() Hand {
 	if game.currentPlayerId == NotStartedPlayerId {
-		game.init()
+		game.Init()
 	}
 	return game.Hands[game.currentPlayerId]
 }
@@ -45,6 +45,8 @@ func NewGame(numOfPlayers int) *Game {
 
 	return &Game{
 		DrawPile:        deck,
+		InPlayPile:      &Deck{Cards: make([]Card, 0)},
+		DiscardPile:     &Deck{Cards: make([]Card, 0)},
 		Hands:           hands,
 		round:           0,
 		currentPlayerId: NotStartedPlayerId,
@@ -89,6 +91,10 @@ func (game *Game) PlayHand(play Play) PlayResult {
 	}
 
 	game.InPlayPile.AddCard(play.Card)
+	drawCard, error := game.DrawPile.DrawCard()
+	if error == nil {
+		play.Hand.InHand = append(play.Hand.InHand, drawCard)
+	}
 
 	return game.concludePlay(play)
 }
@@ -123,12 +129,15 @@ func dealCard(deck *Deck, hands []Hand, numOfRounds int, acceptCard func(hand *H
 	for r := 0; r < numOfRounds; r++ {
 		for i := range hands {
 			hand := &hands[i]
-			acceptCard(hand, deck.DrawCard())
+			card, err := deck.DrawCard()
+			if err == nil {
+				acceptCard(hand, card)
+			}
 		}
 	}
 }
 
-func (game *Game) init() {
+func (game *Game) Init() {
 	// Find player with lowest card
 	minCard := minSlice(game.Hands[0].InHand, NumericCompare)
 	startingPlayerId := 0

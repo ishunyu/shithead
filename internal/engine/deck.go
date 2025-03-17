@@ -10,16 +10,19 @@ import (
 type Suit uint8
 
 const (
-	Club       Suit = 0
-	Diamond    Suit = 1
-	Heart      Suit = 2
-	Spade      Suit = 3
-	JokerSmall Suit = 4
-	JokerLarge Suit = 5
+	ErrorSuit  Suit = 0
+	Club       Suit = 1
+	Diamond    Suit = 2
+	Heart      Suit = 3
+	Spade      Suit = 4
+	JokerSmall Suit = 5
+	JokerLarge Suit = 6
 )
 
 func (suit Suit) String() string {
 	switch suit {
+	case ErrorSuit:
+		return "ErrorSuit"
 	case Club:
 		return "Club"
 	case Diamond:
@@ -40,26 +43,66 @@ func (suit Suit) String() string {
 type Rank uint8
 
 const (
-	Ace   Rank = 1
-	Two   Rank = 2
-	Three Rank = 3
-	Four  Rank = 4
-	Five  Rank = 5
-	Six   Rank = 6
-	Seven Rank = 7
-	Eight Rank = 8
-	Nine  Rank = 9
-	Ten   Rank = 10
-	Jack  Rank = 11
-	Queen Rank = 12
-	King  Rank = 13
-	Joker Rank = math.MaxUint8
+	ErrorRank Rank = 0
+	Ace       Rank = 1
+	Two       Rank = 2
+	Three     Rank = 3
+	Four      Rank = 4
+	Five      Rank = 5
+	Six       Rank = 6
+	Seven     Rank = 7
+	Eight     Rank = 8
+	Nine      Rank = 9
+	Ten       Rank = 10
+	Jack      Rank = 11
+	Queen     Rank = 12
+	King      Rank = 13
+	Joker     Rank = math.MaxUint8
 )
+
+func (rank Rank) String() string {
+	switch rank {
+	case ErrorRank:
+		return "ErrorRank"
+	case Ace:
+		return "Ace"
+	case Two:
+		return "Two"
+	case Three:
+		return "Three"
+	case Four:
+		return "Four"
+	case Five:
+		return "Five"
+	case Six:
+		return "Six"
+	case Seven:
+		return "Seven"
+	case Eight:
+		return "Eight"
+	case Nine:
+		return "Nine"
+	case Ten:
+		return "Ten"
+	case Jack:
+		return "Jack"
+	case Queen:
+		return "Queen"
+	case King:
+		return "King"
+	case Joker:
+		return "Joker"
+	default:
+		return "Unknown"
+	}
+}
 
 type Card struct {
 	Suit Suit
 	Rank Rank
 }
+
+var ErrorCard Card = Card{Suit: ErrorSuit, Rank: ErrorRank}
 
 func (card Card) String() string {
 	return fmt.Sprintf("(%s, %d)", card.Suit, card.Rank)
@@ -117,10 +160,14 @@ func NewDeck() *Deck {
 	return &Deck{deck}
 }
 
-func (deck *Deck) DrawCard() Card {
+func (deck *Deck) DrawCard() (Card, error) {
+	if len(deck.Cards) == 0 {
+		return ErrorCard, fmt.Errorf("Deck is empty")
+	}
+
 	card, remaining := deck.Cards[0], deck.Cards[1:]
 	deck.Cards = remaining
-	return card
+	return card, nil
 }
 
 func (deck *Deck) AddCard(card Card) {
