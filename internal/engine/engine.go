@@ -6,19 +6,22 @@ import (
 
 type Game struct {
 	DrawPile        *Deck
-	DiscardPile     *Deck
 	InPlayPile      *Deck
+	DiscardPile     *Deck
 	Hands           []Hand
-	currentPlayerId int
 	comparator      CardComparator
+	round           int
+	currentPlayerId int
+	direction       int
 }
 
-const InitialPlayerId int = -1
+const NotStartedPlayerId int = -1
 const EndedPlayerId int = -2
+const ErrorPlayerId int = -3
 
 func (game *Game) CurrentHand() Hand {
-	if game.currentPlayerId == InitialPlayerId {
-		game.init()
+	if game.currentPlayerId == NotStartedPlayerId {
+		game.Init()
 	}
 	return game.Hands[game.currentPlayerId]
 }
@@ -28,7 +31,7 @@ func NewGame(numOfPlayers int) *Game {
 	hands := make([]Hand, 0, numOfPlayers)
 	for i := 0; i < numOfPlayers; i++ {
 		hands = append(hands, Hand{
-			Id:       uint8(i),
+			Id:       i,
 			InHand:   make([]Card, 0, 3),
 			FaceUp:   make([]Card, 0, 3),
 			FaceDown: make([]Card, 0, 3),
@@ -42,14 +45,70 @@ func NewGame(numOfPlayers int) *Game {
 
 	return &Game{
 		DrawPile:        deck,
+		InPlayPile:      &Deck{Cards: make([]Card, 0)},
+		DiscardPile:     &Deck{Cards: make([]Card, 0)},
 		Hands:           hands,
-		currentPlayerId: InitialPlayerId,
+		round:           0,
+		currentPlayerId: NotStartedPlayerId,
+		direction:       1,
 		comparator:      BasicComparator,
 	}
 }
 
-func (game *Game) PlayHand(hand *Hand) {
+func (game *Game) PlayHand(play Play) PlayResult {
+	// Check the correct player played the turn
+	if play.Hand.Id != game.currentPlayerId {
+		return PlayResult{
+			Round:        game.round,
+			Success:      false,
+			Status:       Play_WrongPlayer,
+			NextPlayerId: game.currentPlayerId,
+		}
+	}
 
+	// Check if the card is in the player's hand
+	status := play.Hand.removeCard(play.Card)
+	if status != Success {
+		return PlayResult{
+			Round:        game.round,
+			Success:      false,
+			Status:       status,
+			NextPlayerId: game.currentPlayerId,
+		}
+	}
+
+	// Check if the card is higher than the top of the in play pile
+	if len(game.InPlayPile.Cards) > 0 {
+		topCard := game.InPlayPile.Cards[len(game.InPlayPile.Cards)-1]
+		if game.compare(play.Card, topCard) < 0 {
+			return PlayResult{
+				Round:        game.round,
+				Success:      false,
+				Status:       Play_CardTooLow,
+				NextPlayerId: game.currentPlayerId,
+			}
+		}
+	}
+
+	game.InPlayPile.AddCard(play.Card)
+	drawCard, error := game.DrawPile.DrawCard()
+	if error == nil {
+		play.Hand.InHand = append(play.Hand.InHand, drawCard)
+	}
+
+	return game.concludePlay(play)
+}
+
+func (game *Game) concludePlay(play Play) PlayResult {
+	game.round++
+	game.currentPlayerId = game.nextPlayerId()
+
+	return PlayResult{
+		Round:        game.round,
+		Success:      true,
+		Status:       Success,
+		NextPlayerId: game.currentPlayerId,
+	}
 }
 
 func (game *Game) String() string {
@@ -70,12 +129,15 @@ func dealCard(deck *Deck, hands []Hand, numOfRounds int, acceptCard func(hand *H
 	for r := 0; r < numOfRounds; r++ {
 		for i := range hands {
 			hand := &hands[i]
-			acceptCard(hand, deck.DrawCard())
+			card, err := deck.DrawCard()
+			if err == nil {
+				acceptCard(hand, card)
+			}
 		}
 	}
 }
 
-func (game *Game) init() {
+func (game *Game) Init() {
 	// Find player with lowest card
 	minCard := minSlice(game.Hands[0].InHand, NumericCompare)
 	startingPlayerId := 0
@@ -99,4 +161,20 @@ func newGameComparator(compareFunc cardComparatorFunc) CardComparator {
 		compareFunc: compareFunc,
 		next:        &BasicComparator,
 	}
+}
+
+func (game *Game) leftOf(playerId int) int {
+	return (playerId - 1) % len(game.Hands)
+}
+
+func (game *Game) rightOf(playerId int) int {
+	return (playerId + 1) % len(game.Hands)
+}
+
+func (game *Game) nextPlayerId() int {
+	return (game.currentPlayerId + game.direction) % len(game.Hands)
+}
+
+func (game *Game) nextTo(playerAId int, playerBId int) bool {
+	return game.leftOf(playerAId) == playerBId || game.rightOf(playerAId) == playerBId
 }
