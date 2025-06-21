@@ -1,70 +1,30 @@
 package engine
 
-type CardCompare func(a, b Card) int
+// Compare related functions
 
-// NumericCompare is a CardCompare that compares cards by their numeric value.
-func NumericCompare(a, b Card) int {
-	if a == b {
-		return 0
-	}
-
-	rankDiff := int(a.Rank) - int(b.Rank)
-	if rankDiff != 0 {
-		return rankDiff
-	}
-
-	return int(a.Suit) - int(b.Suit)
+func (game *Game) compareCards(a Card, b Card) int {
+	return game.comparator.Compare(a, b)
 }
 
-type CardComparator interface {
-	Compare(a, b Card) int
-}
-
-type comparatorState int
-
-const (
-	_terminate comparatorState = 0
-	_continue  comparatorState = 1
-)
-
-type cardComparatorFunc func(a, b Card) (int, comparatorState)
-
-type CardComparatorImpl struct {
-	compareFunc cardComparatorFunc
-	next        *CardComparator
-}
-
-func (comparator CardComparatorImpl) Compare(a, b Card) int {
-	t, c := comparator.compareFunc(a, b)
-	if c == _terminate {
-		return t
+func newGameComparator(compareFunc cardComparatorFunc) CardComparator {
+	return CardComparatorImpl{
+		compareFunc: compareFunc,
+		next:        &BasicComparator,
 	}
-	return (*comparator.next).Compare(a, b)
 }
 
-var BasicComparator CardComparator = CardComparatorImpl{
-	compareFunc: func(a, b Card) (int, comparatorState) {
-		return NumericCompare(a, b), _terminate
-	},
-	next: nil,
+func (game *Game) leftOf(playerId int) int {
+	return (playerId - 1 + len(game.Hands)) % len(game.Hands)
 }
 
-func min(a, b Card, comparatorFunc CardCompare) Card {
-	if comparatorFunc(a, b) <= 0 {
-		return a
-	}
-	return b
+func (game *Game) rightOf(playerId int) int {
+	return (playerId + 1) % len(game.Hands)
 }
 
-func minSlice(cards []Card, comparatorFunc CardCompare) Card {
-	numOfCards := len(cards)
-	if numOfCards == 0 {
-		panic("cards is empty")
-	}
+func (game *Game) nextPlayerId() int {
+	return (game.currentPlayerId + game.direction + len(game.Hands)) % len(game.Hands)
+}
 
-	minCard := cards[0]
-	for i := 1; i < numOfCards; i++ {
-		minCard = min(minCard, cards[i], comparatorFunc)
-	}
-	return minCard
+func (game *Game) isNextTo(playerAId int, playerBId int) bool {
+	return game.leftOf(playerAId) == playerBId || game.rightOf(playerAId) == playerBId
 }

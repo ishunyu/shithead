@@ -80,7 +80,7 @@ func TestPlayHandSuccess(t *testing.T) {
 		t.Fatalf("Round number mismatch. Expected: 1, actual: %d.", result.Round)
 	}
 
-	if !game.nextTo(result.NextPlayerId, startingHand.Id) {
+	if !game.isNextTo(result.NextPlayerId, startingHand.Id) {
 		t.Fatalf("Next player mismatch. startingPlayerId: %d, nextPlayerId: %d.", startingHand.Id, result.NextPlayerId)
 	}
 
@@ -96,14 +96,33 @@ func TestPlayHandSuccess(t *testing.T) {
 func TestPlayHandFail(t *testing.T) {
 	numOfPlayers := 4
 	game := NewGame(numOfPlayers)
-	startingHand := &game.Hands[game.currentPlayerId]
+	game.Init()
 
+	// Attempt to play a card from the left player's hand, which should fail
+	startingHand := game.CurrentHand()
+	handToTheLeft := game.leftOf(startingHand.Id)
 	play := Play{
-		Hand: &game.Hands[game.leftOf(startingHand.Id)],
+		Hand: &game.Hands[handToTheLeft],
 		Card: minSlice(startingHand.InHand, NumericCompare),
 	}
 	result := game.PlayHand(play)
 	if result.Success {
 		t.Fatal("Expected play to fail, but it succeeded.")
+	}
+	if startingHand.Id != game.CurrentHand().Id {
+		t.Fatalf("Current hand should not have changed. Expected: %d, actual: %d.", startingHand.Id, game.CurrentHand().Id)
+	}
+
+	// Attempt to play a card not from the current hand, which should also fail
+	play = Play{
+		Hand: &startingHand,
+		Card: minSlice(game.Hands[handToTheLeft].InHand, NumericCompare),
+	}
+	result = game.PlayHand(play)
+	if result.Success {
+		t.Fatal("Expected play to fail, but it succeeded.")
+	}
+	if startingHand.Id != game.CurrentHand().Id {
+		t.Fatalf("Current hand should not have changed. Expected: %d, actual: %d.", startingHand.Id, game.CurrentHand().Id)
 	}
 }

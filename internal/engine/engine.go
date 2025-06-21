@@ -80,7 +80,7 @@ func (game *Game) PlayHand(play Play) PlayResult {
 	// Check if the card is higher than the top of the in play pile
 	if len(game.InPlayPile.Cards) > 0 {
 		topCard := game.InPlayPile.Cards[len(game.InPlayPile.Cards)-1]
-		if game.compare(play.Card, topCard) < 0 {
+		if game.compareCards(play.Card, topCard) < 0 {
 			return PlayResult{
 				Round:        game.round,
 				Success:      false,
@@ -144,37 +144,10 @@ func (game *Game) Init() {
 	for i := 1; i < len(game.Hands); i++ {
 		hand := game.Hands[i]
 		minCardInHand := minSlice(hand.InHand, NumericCompare)
-		if game.compare(minCardInHand, minCard) < 0 {
+		if game.compareCards(minCardInHand, minCard) < 0 {
 			startingPlayerId = i
 			minCard = minCardInHand
 		}
 	}
 	game.currentPlayerId = startingPlayerId
-}
-
-func (game *Game) compare(a Card, b Card) int {
-	return game.comparator.Compare(a, b)
-}
-
-func newGameComparator(compareFunc cardComparatorFunc) CardComparator {
-	return CardComparatorImpl{
-		compareFunc: compareFunc,
-		next:        &BasicComparator,
-	}
-}
-
-func (game *Game) leftOf(playerId int) int {
-	return (playerId - 1) % len(game.Hands)
-}
-
-func (game *Game) rightOf(playerId int) int {
-	return (playerId + 1) % len(game.Hands)
-}
-
-func (game *Game) nextPlayerId() int {
-	return (game.currentPlayerId + game.direction) % len(game.Hands)
-}
-
-func (game *Game) nextTo(playerAId int, playerBId int) bool {
-	return game.leftOf(playerAId) == playerBId || game.rightOf(playerAId) == playerBId
 }
