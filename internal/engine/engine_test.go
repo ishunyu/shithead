@@ -168,9 +168,9 @@ func TestPlayHand10(t *testing.T) {
 	game.Init()
 
 	startingHand := &game.Hands[game.currentPlayerId]
-	tenCard := Card{Rank: Ten, Suit: Spade} // Assuming Ten is a valid rank and Spades is a valid suit
+	tenCard := Card{Rank: Ten, Suit: Spade}
 
-	// Add a Ten card to the starting hand for testing
+	// Add a 10 card to the starting hand for testing
 	startingHand.InHand = append(startingHand.InHand, tenCard)
 
 	// Simulate some cards in play
@@ -196,29 +196,76 @@ func TestPlayHand8(t *testing.T) {
 	game.Init()
 
 	startingHand := &game.Hands[game.currentPlayerId]
-	eightCard := Card{Rank: Eight, Suit: Spade} // Assuming Eight is a valid rank and Spades is a valid suit
+	eightCard := Card{Rank: Eight, Suit: Spade}
 
-	// Add an Eight card to the starting hand for testing
+	// Add an 8 card to the starting hand for testing
 	startingHand.InHand = append(startingHand.InHand, eightCard)
 
 	// Add a card to the in-play pile to simulate a game state
 	game.InPlayPile.Cards = append(game.InPlayPile.Cards, Card{Rank: Two, Suit: Heart})
 
-	// Ensure the next player has a higher card to play
-	expectedNextPlayerId := game.nextPlayerId()
-	nextPlayerHandCard := Card{Rank: Three, Suit: Diamond}
-	game.Hands[expectedNextPlayerId].InHand = append(game.Hands[expectedNextPlayerId].InHand, nextPlayerHandCard)
-
 	play := newPlay(startingHand, eightCard)
 
 	result := game.PlayHand(play)
 	if !result.Success {
-		t.Fatal("Expected play with Eight to succeed, but it failed.")
+		t.Fatal("Expected play with 8 to succeed, but it failed.")
 	}
 
+	// We expect the next player to play successfully given 8 is transparent
+	// Ensure the next player has a higher card to play
+	expectedNextPlayerId := game.currentPlayerId
+	nextPlayerHandCard := Card{Rank: Three, Suit: Diamond}
+	game.Hands[expectedNextPlayerId].InHand = append(game.Hands[expectedNextPlayerId].InHand, nextPlayerHandCard)
+	
 	nextPlay := newPlay(&game.Hands[expectedNextPlayerId], nextPlayerHandCard)
 	nextResult := game.PlayHand(nextPlay)
 	if !nextResult.Success {
-		t.Fatal("Expected next player to play successfully after Eight, but it failed.")
+		t.Fatalf("Expected next player to play successfully after 8, but it failed. nextPlay: %v, nextResult: %v",nextPlay, nextResult)
 	}
 }
+
+func TestPlayHand8s(t *testing.T) {
+	numOfPlayers := 4
+	game := NewGame(numOfPlayers)
+	game.Init()
+
+	// Setup the game
+	game.InPlayPile.Cards = append(game.InPlayPile.Cards, Card{Rank: Two, Suit: Heart})
+	game.InPlayPile.Cards = append(game.InPlayPile.Cards, Card{Rank: Eight, Suit: Club})
+	game.InPlayPile.Cards = append(game.InPlayPile.Cards, Card{Rank: Eight, Suit: Diamond})
+	game.InPlayPile.Cards = append(game.InPlayPile.Cards, Card{Rank: Eight, Suit: Heart})
+	game.InPlayPile.Cards = append(game.InPlayPile.Cards, Card{Rank: Eight, Suit: Spade})	
+
+	threeCard := Card{Rank: Three, Suit: Diamond}
+	hand := &game.Hands[game.currentPlayerId]
+	hand.InHand = append(hand.InHand, threeCard)
+	play := newPlay(hand, threeCard)
+
+	result := game.PlayHand(play)
+	if !result.Success {
+		t.Fatalf("Expected play with 8 to succeed, but it failed. play: %v, result: %v", play, result)
+	}
+}
+
+func TestPlayHandAll8s(t *testing.T) {
+	numOfPlayers := 4
+	game := NewGame(numOfPlayers)
+	game.Init()
+
+	// Setup the game with all 8s in play
+	game.InPlayPile.Cards = append(game.InPlayPile.Cards, Card{Rank: Eight, Suit: Club})
+	game.InPlayPile.Cards = append(game.InPlayPile.Cards, Card{Rank: Eight, Suit: Diamond})
+	game.InPlayPile.Cards = append(game.InPlayPile.Cards, Card{Rank: Eight, Suit: Heart})
+	game.InPlayPile.Cards = append(game.InPlayPile.Cards, Card{Rank: Eight, Suit: Spade})
+
+	// Player plays a card that is not an 8
+	threeCard := Card{Rank: Three, Suit: Diamond}
+	hand := &game.Hands[game.currentPlayerId]
+	hand.InHand = append(hand.InHand, threeCard)
+	play := newPlay(hand, threeCard)
+
+	result := game.PlayHand(play)
+	if !result.Success {
+		t.Fatalf("Expected play with non-8 to succeed, but it failed. play: %v, result: %v", play, result)
+	}
+}	

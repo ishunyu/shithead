@@ -16,8 +16,6 @@ func NumericCompare(a, b Card) int {
 	return int(a.Suit) - int(b.Suit)
 }
 
-type cardComparatorFunc func(a, b Card) (int, comparatorState)
-
 type CardComparator interface {
 	Compare(a, b Card) int
 }
@@ -28,6 +26,8 @@ const (
 	_terminate comparatorState = 0
 	_continue  comparatorState = 1
 )
+
+type cardComparatorFunc func(a, b Card) (int, comparatorState)
 
 type CardComparatorImpl struct {
 	compareFunc cardComparatorFunc

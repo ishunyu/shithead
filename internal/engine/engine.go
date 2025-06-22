@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"slices"
 )
 
 type Game struct {
@@ -81,7 +82,7 @@ func (game *Game) PlayHand(play Play) PlayResult {
 	if play.Card.Rank == Ten {
 		game.DiscardPile.Cards = append(game.DiscardPile.Cards, game.InPlayPile.Cards...)
 		game.InPlayPile.Cards = game.InPlayPile.Cards[:0]
-		return game.concludePlay(play, true)
+		return game.concludePlay(play, false)
 	}
 
 	// 8 is transparent
@@ -91,8 +92,16 @@ func (game *Game) PlayHand(play Play) PlayResult {
 
 	// Check if the card is higher than the top of the in-play pile
 	if len(game.InPlayPile.Cards) > 0 {
-		topCard := game.InPlayPile.Cards[len(game.InPlayPile.Cards)-1]
-		if game.compareCards(play.Card, topCard) < 0 {
+		topCard := ErrorCard
+		for _, card := range slices.Backward(game.InPlayPile.Cards) {
+			// 8 is transparent, so we skip it and only compare cards that are not 8
+			if card.Rank != Eight {
+				topCard = card
+				break
+			}
+		}
+
+		if topCard != ErrorCard && game.compareCards(play.Card, topCard) < 0 {
 			return PlayResult{
 				Round:        game.round,
 				Success:      false,
