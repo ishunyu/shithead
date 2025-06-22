@@ -67,7 +67,7 @@ func (game *Game) PlayHand(play Play) PlayResult {
 	}
 
 	// Check if the card is in the player's hand
-	status := play.Hand.removeCard(play.Card)
+	status := play.Hand.removeCard(play.ActualCard)
 	if status != Success {
 		return PlayResult{
 			Round:        game.round,
@@ -77,7 +77,19 @@ func (game *Game) PlayHand(play Play) PlayResult {
 		}
 	}
 
-	// Check if the card is higher than the top of the in play pile
+	// 10 removes the in-play pile
+	if play.Card.Rank == Ten {
+		game.DiscardPile.Cards = append(game.DiscardPile.Cards, game.InPlayPile.Cards...)
+		game.InPlayPile.Cards = game.InPlayPile.Cards[:0]
+		return game.concludePlay(play, true)
+	}
+
+	// 8 is transparent
+	if play.Card.Rank == Eight {
+		return game.concludePlay(play, true)
+	}
+
+	// Check if the card is higher than the top of the in-play pile
 	if len(game.InPlayPile.Cards) > 0 {
 		topCard := game.InPlayPile.Cards[len(game.InPlayPile.Cards)-1]
 		if game.compareCards(play.Card, topCard) < 0 {
@@ -88,18 +100,27 @@ func (game *Game) PlayHand(play Play) PlayResult {
 				NextPlayerId: game.currentPlayerId,
 			}
 		}
+
+		return game.concludePlay(play, true)
 	}
 
-	game.InPlayPile.AddCard(play.Card)
-	drawCard, error := game.DrawPile.DrawCard()
-	if error == nil {
-		play.Hand.InHand = append(play.Hand.InHand, drawCard)
+	return PlayResult{
+		Round:        game.round,
+		Success:      false,
+		Status:       Play_UnexpectedPlay,
+		NextPlayerId: game.currentPlayerId,
 	}
-
-	return game.concludePlay(play)
 }
 
-func (game *Game) concludePlay(play Play) PlayResult {
+func (game *Game) concludePlay(play Play, drawCard bool) PlayResult {
+	if drawCard {
+		game.InPlayPile.AddCard(play.Card)
+		drawCard, error := game.DrawPile.DrawCard()
+		if error == nil {
+			play.Hand.InHand = append(play.Hand.InHand, drawCard)
+		}
+	}
+
 	game.round++
 	game.currentPlayerId = game.nextPlayerId()
 
@@ -150,4 +171,20 @@ func (game *Game) Init() {
 		}
 	}
 	game.currentPlayerId = startingPlayerId
+}
+
+func (game *Game) leftOf(playerId int) int {
+	return (playerId - 1 + len(game.Hands)) % len(game.Hands)
+}
+
+func (game *Game) rightOf(playerId int) int {
+	return (playerId + 1) % len(game.Hands)
+}
+
+func (game *Game) nextPlayerId() int {
+	return (game.currentPlayerId + game.direction + len(game.Hands)) % len(game.Hands)
+}
+
+func (game *Game) isNextTo(playerAId int, playerBId int) bool {
+	return game.leftOf(playerAId) == playerBId || game.rightOf(playerAId) == playerBId
 }

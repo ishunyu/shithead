@@ -124,3 +124,20 @@ func TestJoker(t *testing.T) {
 		testCompareWithJoker(spades, joker)
 	}
 }
+
+func TestMin(t *testing.T) {
+	// Function to test the min function
+	testMin := func(cards []Card, expected Card) {
+		result := minSlice(cards, NumericCompare)
+		if result != expected {
+			t.Errorf("Expected %v, got %v", expected, result)
+		}
+	}
+
+	// Test for each suit
+	testMin(clubs, clubs[0])
+	testMin(diamonds, diamonds[0])
+	testMin(hearts, hearts[0])
+	testMin(spades, spades[0])
+	testMin(jokers, jokers[0])
+}
